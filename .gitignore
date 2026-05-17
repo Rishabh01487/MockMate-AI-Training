@@ -1,0 +1,28 @@
+# MockMate AI — Custom Model Training Pipeline
+# ================================================
+# This folder contains everything needed to train
+# your own AI model from MockMate's collected data.
+#
+# Structure:
+#   data/           → Exported training data (JSONL)
+#   scripts/        → Training & export scripts  
+#   models/         → Your fine-tuned model output
+#   dashboard.html  → Monitoring dashboard
+#
+# Requirements:
+#   - Python 3.10+
+#   - Google Colab (free GPU) OR local GPU with 8GB+ VRAM
+#   - At least 500 training samples from MockMate
+#
+# Quick Start:
+#   1. Collect data: Use MockMate → data auto-saves to MongoDB
+#   2. Export data:  python scripts/export_data.py
+#   3. Train model:  Upload train_model.ipynb to Google Colab
+#   4. Deploy model: ollama create mockmate-ai -f Modelfile
+
+*.pyc
+__pycache__/
+models/*.bin
+models/*.safetensors
+data/*.jsonl
+.env
