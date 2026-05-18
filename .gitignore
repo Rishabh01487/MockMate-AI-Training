@@ -24,5 +24,9 @@
 __pycache__/
 models/*.bin
 models/*.safetensors
+models/*.gguf
+models/content/
+*.gguf
+*.zip
 data/*.jsonl
 .env
