@@ -1,0 +1,9 @@
+{
+  "version": 2,
+  "buildCommand": "echo done",
+  "outputDirectory": ".",
+  "cleanUrls": true,
+  "rewrites": [
+    { "source": "/", "destination": "/dashboard.html" }
+  ]
+}
