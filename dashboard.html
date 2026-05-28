@@ -9,7 +9,7 @@
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body { font-family: 'Inter', sans-serif; background: #050508; color: #e2e8f0; min-height: 100vh; }
     .header { padding: 1.2rem 2rem; background: rgba(10,10,15,0.9); backdrop-filter: blur(20px); border-bottom: 1px solid rgba(255,255,255,0.06); display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; }
-    .header-brand { display: flex; align-items: center; gap: 0.6rem; font-size: 1.15rem; font-weight: 800; background: linear-gradient(135deg, #6366f1, #a78bfa); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    .header-brand { display: flex; align-items: center; gap: 0.6rem; font-size: 1.15rem; font-weight: 800; background: linear-gradient(135deg, #6366f1, #a78bfa); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
     .header-brand .emoji { -webkit-text-fill-color: initial; }
     .header-status { display: flex; align-items: center; gap: 0.5rem; font-size: 0.78rem; color: #64748b; }
     .status-dot { width: 8px; height: 8px; border-radius: 50%; animation: pulse 2s infinite; }
@@ -66,17 +66,14 @@
 <div class="main" id="app"><div style="text-align:center;padding:4rem;color:#475569;">Connecting to backend...</div></div>
 
 <script>
-// Auto-detect: if on GitHub Pages, use Render backend. Otherwise use localhost.
-const DEFAULT_URL = window.location.hostname.includes('github.io')
-  ? 'https://mockmate-backend.onrender.com'
-  : 'http://localhost:5000';
+// Use relative path for Vercel functions, or localhost for local testing
+const API_URL = ''; 
 
-let API_URL = localStorage.getItem('mockmate_api_url') || DEFAULT_URL;
 let stats = null, exportResult = null, exporting = false;
 
 async function fetchStats() {
   try {
-    const res = await fetch(`${API_URL}/api/training/stats`);
+    const res = await fetch(`/api/training/stats`);
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     stats = await res.json();
     updateStatus(true);
@@ -86,11 +83,10 @@ async function fetchStats() {
     document.getElementById('app').innerHTML = `
       <div style="text-align:center;padding:3rem;">
         <div style="font-size:2rem;margin-bottom:1rem;">⚠️</div>
-        <div style="color:#f59e0b;font-weight:700;margin-bottom:0.5rem;">Cannot connect to backend</div>
-        <div style="color:#64748b;font-size:0.85rem;margin-bottom:1.5rem;">Make sure MockMate backend is running at:<br><code style="color:#6366f1">${API_URL}</code></div>
+        <div style="color:#f59e0b;font-weight:700;margin-bottom:0.5rem;">Database Connection Required</div>
+        <div style="color:#64748b;font-size:0.85rem;margin-bottom:1.5rem;">Make sure <code>MONGODB_URI</code> is set in Vercel.</div>
         <div style="display:flex;align-items:center;gap:0.5rem;justify-content:center;flex-wrap:wrap;">
-          <input class="config-input" id="apiUrlInput" value="${API_URL}" placeholder="http://localhost:5000" style="background:#1e293b;border:1px solid #334155;border-radius:8px;padding:0.5rem 0.8rem;color:#e2e8f0;font-size:0.85rem;width:300px;">
-          <button onclick="saveApiUrl()" style="padding:0.5rem 1.2rem;border-radius:8px;border:none;background:#6366f1;color:#fff;font-weight:600;cursor:pointer;">Reconnect</button>
+           <button onclick="fetchStats()" style="padding:0.7rem 1.5rem;border-radius:10px;border:none;background:#6366f1;color:#fff;font-weight:700;cursor:pointer;">Retry Connection</button>
         </div>
       </div>`;
   }
@@ -99,20 +95,28 @@ async function fetchStats() {
 async function doExport() {
   exporting = true; exportResult = null; render();
   try {
-    const res = await fetch(`${API_URL}/api/training/export`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ path: 'F:\\\\MockMate-AI-Training' }) });
-    exportResult = await res.json(); fetchStats();
+    const res = await fetch(`/api/training/export`, { method: 'POST' });
+    exportResult = await res.json(); 
+    if (exportResult.data && exportResult.data.length > 0) {
+      downloadJsonl(exportResult.data);
+    }
+    fetchStats();
   } catch (err) { exportResult = { error: err.message }; }
   exporting = false; render();
 }
 
-function updateStatus(online) {
-  document.getElementById('statusDot').className = `status-dot ${online ? 'online' : 'offline'}`;
-  document.getElementById('statusText').textContent = online ? `Connected → ${API_URL}` : 'Backend offline';
+function downloadJsonl(data) {
+  const blob = new Blob([data.join('\n')], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `mockmate_data_${new Date().toISOString().slice(0,10)}.jsonl`;
+  a.click();
 }
 
-function saveApiUrl() {
-  const v = document.getElementById('apiUrlInput')?.value;
-  if (v) { API_URL = v.replace(/\/$/, ''); localStorage.setItem('mockmate_api_url', API_URL); fetchStats(); }
+function updateStatus(online) {
+  document.getElementById('statusDot').className = `status-dot ${online ? 'online' : 'offline'}`;
+  document.getElementById('statusText').textContent = online ? `MongoDB Connected` : 'Database Offline';
 }
 
 function render() {
