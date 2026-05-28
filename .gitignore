@@ -30,3 +30,9 @@ models/content/
 *.zip
 data/*.jsonl
 .env
+
+node_modules/
+.vercel/
+dist/
+build/
+.env.local
