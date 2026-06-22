@@ -9,12 +9,13 @@ export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
   try {
-    const { question, answer, domain, source } = req.body || {};
-    if (!question || !answer) return res.status(400).json({ error: 'Missing data' });
+    const { instruction, input, output, domain, questionType, source } = req.body || {};
+    if (!instruction || !output) return res.status(400).json({ error: 'Missing data' });
 
     const { db } = await connectToDatabase();
-    const result = await db.collection('training_samples').insertOne({
-      question, answer, domain: domain || 'general', source: source || 'web',
+    const result = await db.collection('trainingdatas').insertOne({
+      instruction, input: input || '', output, domain: domain || 'general',
+      questionType: questionType || 'unknown', source: source || 'web',
       exported: false, timestamp: new Date()
     });
 

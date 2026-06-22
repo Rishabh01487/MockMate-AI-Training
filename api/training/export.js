@@ -9,7 +9,7 @@ export default async function handler(req, res) {
 
   try {
     const { db } = await connectToDatabase();
-    const collection = db.collection('training_samples');
+    const collection = db.collection('trainingdatas');
 
     const samples = await collection
       .find({ exported: false })
@@ -29,7 +29,7 @@ export default async function handler(req, res) {
     return res.status(200).json({
       exported: samples.length,
       message: `Exported ${samples.length} samples.`,
-      data: samples.map(s => JSON.stringify({ instruction: s.question, input: "", output: s.answer })),
+      data: samples.map(s => JSON.stringify({ instruction: s.instruction || '', input: s.input || '', output: s.output || '' })),
     });
   } catch (err) {
     return res.status(500).json({ error: err.message });

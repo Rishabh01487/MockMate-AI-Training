@@ -10,9 +10,9 @@ export default async function handler(req, res) {
 
   try {
     const { db } = await connectToDatabase();
-    const collection = db.collection('training_samples');
+    const collection = db.collection('trainingdatas');
 
-    const [totalSamples, unexported, byDomainRaw, bySourceRaw] = await Promise.all([
+    const [totalSamples, unexported, byDomainRaw, bySourceRaw, byTypeRaw] = await Promise.all([
       collection.countDocuments(),
       collection.countDocuments({ exported: false }),
       collection.aggregate([
@@ -23,6 +23,10 @@ export default async function handler(req, res) {
         { $group: { _id: '$source', count: { $sum: 1 } } },
         { $sort: { count: -1 } }
       ]).toArray(),
+      collection.aggregate([
+        { $group: { _id: '$questionType', count: { $sum: 1 } } },
+        { $sort: { count: -1 } }
+      ]).toArray(),
     ]);
 
     const byDomain = {};
@@ -31,11 +35,16 @@ export default async function handler(req, res) {
     const bySource = {};
     bySourceRaw.forEach(({ _id, count }) => { if (_id) bySource[_id] = count; });
 
+    const byType = {};
+    byTypeRaw.forEach(({ _id, count }) => { if (_id) byType[_id] = count; });
+
     return res.status(200).json({
       totalSamples,
       unexported,
       byDomain,
       bySource,
+      byType,
+      estimatedFinetuneReady: totalSamples >= 500 ? 'Ready!' : `${totalSamples}/500`,
     });
   } catch (err) {
     console.error('[/api/training/stats] Error:', err);

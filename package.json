@@ -1,6 +1,7 @@
 {
   "name": "mockmate-ai-training-dashboard",
   "version": "1.0.0",
+  "type": "module",
   "description": "Dashboard for monitoring MockMate AI training.",
   "scripts": {
     "start": "serve .",
