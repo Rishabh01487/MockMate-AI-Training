@@ -67,13 +67,13 @@
 
 <script>
 // Use relative path for Vercel functions, or localhost for local testing
-const API_URL = ''; 
+let API_URL = localStorage.getItem('mockmate_api_url') || ''; 
 
 let stats = null, exportResult = null, exporting = false;
 
 async function fetchStats() {
   try {
-    const res = await fetch(`/api/training/stats`);
+    const res = await fetch(`${API_URL}/api/training/stats`);
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     stats = await res.json();
     updateStatus(true);
@@ -95,7 +95,7 @@ async function fetchStats() {
 async function doExport() {
   exporting = true; exportResult = null; render();
   try {
-    const res = await fetch(`/api/training/export`, { method: 'POST' });
+    const res = await fetch(`${API_URL}/api/training/export`, { method: 'POST' });
     exportResult = await res.json(); 
     if (exportResult.data && exportResult.data.length > 0) {
       downloadJsonl(exportResult.data);
@@ -152,6 +152,12 @@ function render() {
     <div class="auto-refresh">Auto-refreshes every 10 seconds</div>`;
 }
 function roadmapStep(n,t,d,done){return `<div class="roadmap-step"><div class="roadmap-num ${done?'done':'pending'}">${done?'✓':n}</div><div><div class="roadmap-title ${done?'done':''}">${t}</div><div class="roadmap-desc">${d}</div></div></div>`;}
+function saveApiUrl() {
+  const url = document.getElementById('apiUrlInput').value.trim();
+  localStorage.setItem('mockmate_api_url', url);
+  API_URL = url;
+  fetchStats();
+}
 fetchStats(); setInterval(fetchStats, 10000);
 </script>
 </body>
